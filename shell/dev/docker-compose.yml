@@ -1,0 +1,92 @@
+version: "3.7"
+
+services:
+  client-ui:
+    container_name: annio-client-ui-dev
+    image: annio-client-ui-dev:latest
+    build:
+      context: ../../client-ui
+      args:
+        - PORT=$WEB_CLIENT_UI_PORT
+        - DEBUG_PORT=$WEB_CLIENT_UI_DEBUG_PORT
+        - API_URL=$BACKEND_SERVICE_URL
+    tty: true
+    stdin_open: true
+    ports:
+      - $WEB_CLIENT_UI_PORT:$WEB_CLIENT_UI_PORT
+      - $WEB_CLIENT_UI_DEBUG_PORT:9229
+    volumes:
+      - ../../client-ui:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - annio-net-dev
+    depends_on:
+      - db
+      - order-service
+      - payment-service
+  order-service:
+    container_name: annio-order-service-dev
+    image: annio-order-service-dev:latest
+    build:
+      context: ../../order-service
+      args:
+        - PORT=$WEB_ADMIN_PORTAL_PORT
+        - API_URL=$BACKEND_SERVICE_URL
+    tty: true
+    stdin_open: true
+    ports:
+      - $WEB_ADMIN_PORTAL_PORT:$WEB_ADMIN_PORTAL_PORT
+    volumes:
+      - ../../orders-service:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - annio-net-dev
+  payment-service:
+    container_name: annio-payment-service-dev
+    image: annio-payment-service-dev:latest
+    build:
+      context: ../../payment-service
+      args:
+        - PORT=$API_PORT
+        - DEBUG_PORT=$DEBUG_PORT
+        - API_PREFIX=$API_PREFIX
+        - TOKEN_EXPIRE=$TOKEN_EXPIRE
+        - TOKEN_SECRET=$TOKEN_SECRET
+        - DB_HOST=$DB_HOST
+        - DB_PORT=$DB_PORT
+        - DB_NAME=$DB_NAME
+        - DB_USERNAME=$DB_USERNAME
+        - DB_PASSWORD=$DB_PASSWORD
+    tty: true
+    stdin_open: true
+    ports:
+      - $API_PORT:$API_PORT
+      - $DEBUG_PORT:9229
+    volumes:
+      - ../../backend:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - annio-net-dev
+    depends_on:
+      - db
+  db:
+    container_name: annio-mysql-dev
+    image: mysql:5.7.25
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: $DB_ROOT_PASSWORD
+      MYSQL_USER: $DB_USERNAME
+      MYSQL_PASSWORD: $DB_PASSWORD
+      MYSQL_DATABASE: $DB_NAME
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - $DB_PORT_EXTERNAL:$DB_PORT
+    networks:
+      - annio-net-dev
+
+volumes:
+  db-data:
+
+networks:
+  annio-net-dev:

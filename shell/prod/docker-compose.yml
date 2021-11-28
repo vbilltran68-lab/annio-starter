@@ -1,0 +1,89 @@
+version: "3.8"
+
+services:
+  client-ui:
+    container_name: annio-client-ui
+    image: annio-client-ui:latest
+    build:
+      context: ../../client-ui
+      dockerfile: Dockerfile.prod
+      args:
+        - PORT=$WEB_CLIENT_UI_PORT
+        - API_URL=$BACKEND_SERVICE_URL
+    ports:
+      - $WEB_CLIENT_UI_PORT:$WEB_CLIENT_UI_PORT
+    volumes:
+      - ../../client-ui:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - annio-net
+    depends_on:
+      - db
+      - order-service
+      - payment-service
+  order-service:
+    container_name: annio-order-service
+    image: annio-order-service:latest
+    build:
+      context: ../../order-service
+      dockerfile: Dockerfile.prod
+      args:
+        - PORT=$WEB_ADMIN_PORTAL_PORT
+        - API_URL=$BACKEND_SERVICE_URL
+    ports:
+      - $WEB_ADMIN_PORTAL_PORT:$WEB_ADMIN_PORTAL_PORT
+    volumes:
+      - ../../order-service:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - annio-net
+    depends_on:
+      - db
+  payment-service:
+    container_name: annio-payment-service
+    image: annio-payment-service:latest
+    build:
+      context: ../../payment-service
+      dockerfile: Dockerfile.prod
+      args:
+        - PORT=$API_PORT
+        - DEBUG_PORT=$DEBUG_PORT
+        - API_PREFIX=$API_PREFIX
+        - TOKEN_EXPIRE=$TOKEN_EXPIRE
+        - TOKEN_SECRET=$TOKEN_SECRET
+        - DB_HOST=$DB_HOST
+        - DB_PORT=$DB_PORT
+        - DB_NAME=$DB_NAME
+        - DB_USERNAME=$DB_USERNAME
+        - DB_PASSWORD=$DB_PASSWORD
+    ports:
+      - $API_PORT:$API_PORT
+      - $DEBUG_PORT:9229
+    volumes:
+      - ../../payment-service:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - annio-net
+    depends_on:
+      - db
+  db:
+    container_name: annio-mysql
+    image: mysql:5.7.25
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: $DB_ROOT_PASSWORD
+      MYSQL_USER: $DB_USERNAME
+      MYSQL_PASSWORD: $DB_PASSWORD
+      MYSQL_DATABASE: $DB_NAME
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - $DB_PORT_EXTERNAL:$DB_PORT
+    networks:
+      - annio-net
+
+volumes:
+  db-data:
+
+networks:
+  annio-net:
