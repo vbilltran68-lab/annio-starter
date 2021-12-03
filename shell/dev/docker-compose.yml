@@ -21,7 +21,31 @@ services:
     networks:
       - annio-net-dev
     depends_on:
-      - db
+      - api-services
+  api-services:
+    container_name: annio-api-services-dev
+    image: annio-api-services-dev:latest
+    build:
+      context: ../../api-services
+      args:
+        - PORT=$API_PORT
+        - DEBUG_PORT=$DEBUG_PORT
+        - API_PREFIX=$API_PREFIX
+        - SERVICE_ORDER_HOST=$SERVICE_ORDER_HOST
+        - SERVICE_ORDER_PORT=$SERVICE_ORDER_PORT
+        - SERVICE_PAYMENT_HOST=$SERVICE_PAYMENT_HOST
+        - SERVICE_PAYMENT_PORT=$SERVICE_PAYMENT_PORT
+    tty: true
+    stdin_open: true
+    ports:
+      - $API_PORT:$API_PORT
+      - $DEBUG_PORT:9229
+    volumes:
+      - ../../client-ui:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - annio-net-dev
+    depends_on:
       - order-service
       - payment-service
   order-service:
@@ -30,38 +54,48 @@ services:
     build:
       context: ../../order-service
       args:
-        - PORT=$WEB_ADMIN_PORTAL_PORT
-        - API_URL=$BACKEND_SERVICE_URL
+        - PORT=$SERVICE_ORDER_PORT
+        - DEBUG_PORT=$SERVICE_ORDER_DEBUG_PORT
+        - DB_HOST=$DB_HOST
+        - DB_PORT=$DB_PORT
+        - DB_USERNAME=$DB_USERNAME
+        - DB_PASSWORD=$DB_PASSWORD
+        - DB_NAME=$DB_NAME
+        - SERVICE_PAYMENT_HOST=$SERVICE_PAYMENT_HOST
+        - SERVICE_PAYMENT_PORT=$SERVICE_PAYMENT_PORT
+        - DELIVERY_SECOND_DELAY=$DELIVERY_SECOND_DELAY
     tty: true
     stdin_open: true
     ports:
-      - $WEB_ADMIN_PORTAL_PORT:$WEB_ADMIN_PORTAL_PORT
+      - $SERVICE_ORDER_PORT:$SERVICE_ORDER_PORT
+      - $SERVICE_ORDER_DEBUG_PORT:9229
     volumes:
       - ../../orders-service:/usr/src/app
       - /usr/src/app/node_modules
     networks:
       - annio-net-dev
+    depends_on:
+      - db
   payment-service:
     container_name: annio-payment-service-dev
     image: annio-payment-service-dev:latest
     build:
       context: ../../payment-service
       args:
-        - PORT=$API_PORT
-        - DEBUG_PORT=$DEBUG_PORT
-        - API_PREFIX=$API_PREFIX
-        - TOKEN_EXPIRE=$TOKEN_EXPIRE
-        - TOKEN_SECRET=$TOKEN_SECRET
+        - PORT=$SERVICE_PAYMENT_PORT
+        - DEBUG_PORT=$SERVICE_PAYMENT_PORT_DEBUG
         - DB_HOST=$DB_HOST
         - DB_PORT=$DB_PORT
         - DB_NAME=$DB_NAME
         - DB_USERNAME=$DB_USERNAME
         - DB_PASSWORD=$DB_PASSWORD
+        - SERVICE_ORDER_HOST=$SERVICE_ORDER_HOST
+        - SERVICE_ORDER_PORT=$SERVICE_ORDER_PORT
     tty: true
     stdin_open: true
     ports:
-      - $API_PORT:$API_PORT
-      - $DEBUG_PORT:9229
+      - $SERVICE_PAYMENT_PORT:$SERVICE_PAYMENT_PORT
+      - $SERVICE_PAYMENT_DEBUG_PORT:9229
     volumes:
       - ../../backend:/usr/src/app
       - /usr/src/app/node_modules

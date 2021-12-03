@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.7"
 
 services:
   client-ui:
@@ -6,19 +6,46 @@ services:
     image: annio-client-ui:latest
     build:
       context: ../../client-ui
-      dockerfile: Dockerfile.prod
       args:
         - PORT=$WEB_CLIENT_UI_PORT
+        - DEBUG_PORT=$WEB_CLIENT_UI_DEBUG_PORT
         - API_URL=$BACKEND_SERVICE_URL
+    tty: true
+    stdin_open: true
     ports:
       - $WEB_CLIENT_UI_PORT:$WEB_CLIENT_UI_PORT
+      - $WEB_CLIENT_UI_DEBUG_PORT:9229
     volumes:
       - ../../client-ui:/usr/src/app
       - /usr/src/app/node_modules
     networks:
       - annio-net
     depends_on:
-      - db
+      - api-services
+  api-services:
+    container_name: annio-api-services
+    image: annio-api-services:latest
+    build:
+      context: ../../api-services
+      args:
+        - PORT=$API_PORT
+        - DEBUG_PORT=$DEBUG_PORT
+        - API_PREFIX=$API_PREFIX
+        - SERVICE_ORDER_HOST=$SERVICE_ORDER_HOST
+        - SERVICE_ORDER_PORT=$SERVICE_ORDER_PORT
+        - SERVICE_PAYMENT_HOST=$SERVICE_PAYMENT_HOST
+        - SERVICE_PAYMENT_PORT=$SERVICE_PAYMENT_PORT
+    tty: true
+    stdin_open: true
+    ports:
+      - $API_PORT:$API_PORT
+      - $DEBUG_PORT:9229
+    volumes:
+      - ../../client-ui:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - annio-net
+    depends_on:
       - order-service
       - payment-service
   order-service:
@@ -26,14 +53,24 @@ services:
     image: annio-order-service:latest
     build:
       context: ../../order-service
-      dockerfile: Dockerfile.prod
       args:
-        - PORT=$WEB_ADMIN_PORTAL_PORT
-        - API_URL=$BACKEND_SERVICE_URL
+        - PORT=$SERVICE_ORDER_PORT
+        - DEBUG_PORT=$SERVICE_ORDER_DEBUG_PORT
+        - DB_HOST=$DB_HOST
+        - DB_PORT=$DB_PORT
+        - DB_USERNAME=$DB_USERNAME
+        - DB_PASSWORD=$DB_PASSWORD
+        - DB_NAME=$DB_NAME
+        - SERVICE_PAYMENT_HOST=$SERVICE_PAYMENT_HOST
+        - SERVICE_PAYMENT_PORT=$SERVICE_PAYMENT_PORT
+        - DELIVERY_SECOND_DELAY=$DELIVERY_SECOND_DELAY
+    tty: true
+    stdin_open: true
     ports:
-      - $WEB_ADMIN_PORTAL_PORT:$WEB_ADMIN_PORTAL_PORT
+      - $SERVICE_ORDER_PORT:$SERVICE_ORDER_PORT
+      - $SERVICE_ORDER_DEBUG_PORT:9229
     volumes:
-      - ../../order-service:/usr/src/app
+      - ../../orders-service:/usr/src/app
       - /usr/src/app/node_modules
     networks:
       - annio-net
@@ -44,23 +81,23 @@ services:
     image: annio-payment-service:latest
     build:
       context: ../../payment-service
-      dockerfile: Dockerfile.prod
       args:
-        - PORT=$API_PORT
-        - DEBUG_PORT=$DEBUG_PORT
-        - API_PREFIX=$API_PREFIX
-        - TOKEN_EXPIRE=$TOKEN_EXPIRE
-        - TOKEN_SECRET=$TOKEN_SECRET
+        - PORT=$SERVICE_PAYMENT_PORT
+        - DEBUG_PORT=$SERVICE_PAYMENT_PORT_DEBUG
         - DB_HOST=$DB_HOST
         - DB_PORT=$DB_PORT
         - DB_NAME=$DB_NAME
         - DB_USERNAME=$DB_USERNAME
         - DB_PASSWORD=$DB_PASSWORD
+        - SERVICE_ORDER_HOST=$SERVICE_ORDER_HOST
+        - SERVICE_ORDER_PORT=$SERVICE_ORDER_PORT
+    tty: true
+    stdin_open: true
     ports:
-      - $API_PORT:$API_PORT
-      - $DEBUG_PORT:9229
+      - $SERVICE_PAYMENT_PORT:$SERVICE_PAYMENT_PORT
+      - $SERVICE_PAYMENT_DEBUG_PORT:9229
     volumes:
-      - ../../payment-service:/usr/src/app
+      - ../../backend:/usr/src/app
       - /usr/src/app/node_modules
     networks:
       - annio-net

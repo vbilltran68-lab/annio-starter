@@ -1,4 +1,5 @@
 # ignore directories
 /order-service
 /payment-service
+/api-services
 /client-ui

@@ -1,38 +1,54 @@
 ## ANNIO-MICRO-SERVICE COMPOSE SETUP
 
-CD to shell folder
-```
-$ cd shell/{environment}
-```
+---
+### Clone Sources
 
-> Step 1. Clone source
-```
-$ sudo sh init.sh
-```
+1. Move to shell folder
+    ```
+    $ cd shell
+    ```
 
-> Step 2. Setup container by docker compose
-```
-$ sudo sh dev.sh
+2. Clone source
+    ```
+    $ sh init.sh
+    ```
+---
+### Container Installation
 
-$ CMD + C (when setup finished)
-```
+1. Move to environment `{env}`: dev/prod
 
-> Step 3: Start all services and go to container backend with bash
-```
-$ sudo sh startup.sh
-```
+    ```
+    $ cd {env}
+    ```
 
-CMD in bash: #
-```
-$ bash#: yarn start:dev (debug)
-$ bash#: yarn start (prod)
+2. Compose container
+    ```
+    $ sh compose.sh
+    ```
 
--- if error, then run bash below and try again
-$ bash#: yarn install
-```
+3. Start containers
 
+    ```
+    $sh startup.sh
+    ```
 
-$ Step 4: If you want to clean all container manually
-```
-$ sudo sh clean.sh
-```
+---
+### Container Exist
+
+1. Inject to container volume from root
+    ```
+    $ sh cbash.sh {containerName}
+    ```
+
+2. Inject to container volumn from service folder (path: root)
+    ```
+    $ cd {service-folder}
+    $ sh bash.sh
+    ```
+
+### Optional
+
+* Clean Containers Manually (path: '/shell/`{env}`')
+    ```
+    $ sh clean.sh
+    ```
