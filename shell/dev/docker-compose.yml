@@ -83,7 +83,7 @@ services:
       context: ../../payment-service
       args:
         - PORT=$SERVICE_PAYMENT_PORT
-        - DEBUG_PORT=$SERVICE_PAYMENT_PORT_DEBUG
+        - DEBUG_PORT=$SERVICE_PAYMENT_DEBUG_PORT
         - DB_HOST=$DB_HOST
         - DB_PORT=$DB_PORT
         - DB_NAME=$DB_NAME
