@@ -41,7 +41,7 @@ services:
       - $API_PORT:$API_PORT
       - $DEBUG_PORT:9229
     volumes:
-      - ../../client-ui:/usr/src/app
+      - ../../api-services:/usr/src/app
       - /usr/src/app/node_modules
     networks:
       - annio-net-dev
@@ -70,7 +70,7 @@ services:
       - $SERVICE_ORDER_PORT:$SERVICE_ORDER_PORT
       - $SERVICE_ORDER_DEBUG_PORT:9229
     volumes:
-      - ../../orders-service:/usr/src/app
+      - ../../order-service:/usr/src/app
       - /usr/src/app/node_modules
     networks:
       - annio-net-dev
@@ -97,7 +97,7 @@ services:
       - $SERVICE_PAYMENT_PORT:$SERVICE_PAYMENT_PORT
       - $SERVICE_PAYMENT_DEBUG_PORT:9229
     volumes:
-      - ../../backend:/usr/src/app
+      - ../../payment-service:/usr/src/app
       - /usr/src/app/node_modules
     networks:
       - annio-net-dev
