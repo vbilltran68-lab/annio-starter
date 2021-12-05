@@ -1,6 +1,9 @@
 ## ANNIO-MICRO-SERVICE COMPOSE SETUP
 
 ---
+### Microservice Flow
+
+![Annio Microservice Flow](./assets/annio-microservice-flow.png)
 ### Clone Sources
 
 1. Move to shell folder
